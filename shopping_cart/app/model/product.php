@@ -2,23 +2,21 @@
 
 require_once __DIR__ . "/../common/dbConnect.php";
 
+// 1. Lấy danh sách sản phẩm
 function getAllProducts()
 {
     global $conn;
 
     $sql = "SELECT * FROM products ORDER BY id DESC";
 
-    $result = $conn->query($sql);
+    $stmt = $conn->prepare($sql);
+    $stmt->execute();
 
-    $products = [];
-
-    while ($row = $result->fetch_assoc()) {
-        $products[] = $row;
-    }
-
-    return $products;
+    return $stmt->fetchAll();
 }
 
+
+// 2. Lấy sản phẩm theo ID
 function getProductById($id)
 {
     global $conn;
@@ -26,15 +24,13 @@ function getProductById($id)
     $sql = "SELECT * FROM products WHERE id = ?";
 
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $id);
+    $stmt->execute([$id]);
 
-    $stmt->execute();
-
-    $result = $stmt->get_result();
-
-    return $result->fetch_assoc();
+    return $stmt->fetch();
 }
 
+
+// 3. Thêm sản phẩm
 function addProduct($name, $price, $quantity)
 {
     global $conn;
@@ -43,11 +39,12 @@ function addProduct($name, $price, $quantity)
             VALUES (?, ?, ?)";
 
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("sdi", $name, $price, $quantity);
 
-    return $stmt->execute();
+    return $stmt->execute([$name, $price, $quantity]);
 }
 
+
+// 4. Cập nhật sản phẩm
 function updateProduct($id, $name, $price, $quantity)
 {
     global $conn;
@@ -57,11 +54,12 @@ function updateProduct($id, $name, $price, $quantity)
             WHERE id = ?";
 
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("sdii", $name, $price, $quantity, $id);
 
-    return $stmt->execute();
+    return $stmt->execute([$name, $price, $quantity, $id]);
 }
 
+
+// 5. Xóa sản phẩm
 function deleteProduct($id)
 {
     global $conn;
@@ -69,7 +67,6 @@ function deleteProduct($id)
     $sql = "DELETE FROM products WHERE id = ?";
 
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $id);
 
-    return $stmt->execute();
+    return $stmt->execute([$id]);
 }

@@ -5,10 +5,19 @@ $username = "root";
 $password = "";
 $database = "shopping_cart";
 
-$conn = new mysqli($servername, $username, $password, $database);
+try {
+    $conn = new PDO(
+        "mysql:host=$servername;dbname=$database;charset=utf8mb4",
+        $username,
+        $password
+    );
 
-if ($conn->connect_error) {
-    die("Kết nối database thất bại: " . $conn->connect_error);
+    // Báo lỗi khi có lỗi truy vấn
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+    // Trả về dữ liệu dưới dạng mảng kết hợp
+    $conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+
+} catch (PDOException $e) {
+    die("Kết nối database thất bại: " . $e->getMessage());
 }
-
-$conn->set_charset("utf8mb4");
