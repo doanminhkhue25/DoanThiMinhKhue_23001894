@@ -1,5 +1,8 @@
 <?php
 
+require_once __DIR__ . "/common/auth.php";
+requireLogin();
+
 require_once "model/product.php";
 
 $id = $_GET["id"] ?? null;
