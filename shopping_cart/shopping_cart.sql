@@ -89,6 +89,7 @@ CREATE TABLE `users` (
 INSERT INTO `users` (`id`, `username`, `password`) VALUES
 (1, 'admin', '$2y$10$qaP6srpqDCV.RXwYmBQtz.q2NdeSf9r7WiaEeneXDpMOCHssLHlya'),
 (2, 'khue', '$2y$10$hEDfBzxDM7JlCScHOTD1E.7HaomZvKy.jAb7Ho5rcvkG50V8Sk.OW');
+(3, 'evening', '$2y$10$/mrTT0iT8WVe/vt9hkVoa.dWgJds3bILJm8KMQVGHYC5b4ztcA3au');
 
 --
 -- Chỉ mục cho các bảng đã đổ
