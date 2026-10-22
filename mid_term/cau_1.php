@@ -3,13 +3,13 @@ $name = "Nguyễn Văn A";
 $score = 8.5;
 
 if ($score >= 8) {
-    $rank = "Gioi";
+    $rank = "Giỏi";
 } elseif ($score >= 6.5) {
-    $rank = "Kha";
+    $rank = "Khá";
 } elseif ($score >= 5) {
-    $rank = "Trung binh";
+    $rank = "Trung bình";
 } else {
-    $rank = "Yeu";
+    $rank = "Yếu";
 }
 
 echo "Tên học sinh: " . $name . "<br>";

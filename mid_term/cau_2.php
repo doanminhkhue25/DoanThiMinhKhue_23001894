@@ -32,6 +32,6 @@ $total = calculateTotal($prices);
 $maxPrice = findMaxPrice($prices);
 
 // 5. Hien thi ket qua
-echo "Tong gia san pham: " . $total . "<br>";
-echo "Gia san pham cao nhat: " . $maxPrice;
+echo "Tổng giá sản phẩm: " . $total . "<br>";
+echo "Giá sản phẩm cao nhất: " . $maxPrice;
 ?>
