@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý công việc cá nhân</title>
+
+    <!-- Vue.js 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f4f7;
+            margin: 0;
+            padding: 30px;
+        }
+
+        .container {
+            max-width: 650px;
+            margin: auto;
+            padding: 25px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.12);
+        }
+
+        h2 {
+            text-align: center;
+            color: #2c3e50;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .input-group input {
+            flex: 1;
+            min-width: 0;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 15px;
+        }
+
+        button {
+            padding: 10px 14px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            color: white;
+        }
+
+        .add-btn {
+            background-color: #27ae60;
+        }
+
+        .add-btn:hover {
+            background-color: #219150;
+        }
+
+        .delete-btn {
+            background-color: #e74c3c;
+        }
+
+        .delete-btn:hover {
+            background-color: #c0392b;
+        }
+
+        .clear-btn {
+            background-color: #8e44ad;
+        }
+
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .filter-btn {
+            background-color: #bdc3c7;
+            color: #2c3e50;
+        }
+
+        .filter-btn.active {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .task-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            margin-bottom: 10px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            border: 1px solid #eee;
+        }
+
+        .task-name {
+            flex: 1;
+            overflow-wrap: anywhere;
+        }
+
+        .completed {
+            text-decoration: line-through;
+            color: #999;
+        }
+
+        .statistics {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            background-color: #eaf2f8;
+            border-radius: 8px;
+        }
+
+        .statistics p {
+            margin: 0;
+            font-weight: bold;
+        }
+
+        .message {
+            text-align: center;
+            color: #777;
+            padding: 20px 0;
+        }
+
+        .clear-container {
+            text-align: right;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div id="app">
+    <div class="container">
+
+        <h2>QUẢN LÝ CÔNG VIỆC CÁ NHÂN</h2>
+
+        <!-- Nhập và thêm công việc -->
+        <form @submit.prevent="themCongViec">
+            <div class="input-group">
+                <input
+                    type="text"
+                    v-model.trim="tenCongViecMoi"
+                    placeholder="Nhập tên công việc..."
+                >
+
+                <button type="submit" class="add-btn">
+                    Thêm
+                </button>
+            </div>
+        </form>
+
+        <!-- Bộ lọc công việc -->
+        <div class="filters">
+            <button
+                type="button"
+                class="filter-btn"
+                :class="{ active: boLoc === 'tatCa' }"
+                @click="boLoc = 'tatCa'"
+            >
+                Tất cả
+            </button>
+
+            <button
+                type="button"
+                class="filter-btn"
+                :class="{ active: boLoc === 'chuaHoanThanh' }"
+                @click="boLoc = 'chuaHoanThanh'"
+            >
+                Chưa hoàn thành
+            </button>
+
+            <button
+                type="button"
+                class="filter-btn"
+                :class="{ active: boLoc === 'daHoanThanh' }"
+                @click="boLoc = 'daHoanThanh'"
+            >
+                Đã hoàn thành
+            </button>
+        </div>
+
+        <!-- Danh sách công việc -->
+        <ul class="task-list" v-if="congViecHienThi.length > 0">
+            <li
+                v-for="congViec in congViecHienThi"
+                :key="congViec.id"
+                class="task-item"
+            >
+                <!-- Checkbox đánh dấu hoàn thành -->
+                <input
+                    type="checkbox"
+                    v-model="congViec.hoanThanh"
+                    :aria-label="'Đánh dấu hoàn thành: ' + congViec.ten"
+                >
+
+                <!-- Gạch ngang tên công việc khi hoàn thành -->
+                <span
+                    class="task-name"
+                    :class="{ completed: congViec.hoanThanh }"
+                >
+                    {{ congViec.ten }}
+                </span>
+
+                <!-- Xóa từng công việc -->
+                <button
+                    type="button"
+                    class="delete-btn"
+                    @click="xoaCongViec(congViec.id)"
+                >
+                    Xóa
+                </button>
+            </li>
+        </ul>
+
+        <!-- Thông báo khi danh sách rỗng hoặc bộ lọc không có kết quả -->
+        <p v-else class="message">
+            {{ thongBaoRong }}
+        </p>
+
+        <!-- Thống kê công việc -->
+        <div class="statistics">
+            <p>Tổng số: {{ tongSoCongViec }}</p>
+            <p>Chưa hoàn thành: {{ soCongViecChuaHoanThanh }}</p>
+        </div>
+
+        <!-- Xóa các công việc đã hoàn thành -->
+        <div class="clear-container">
+            <button
+                type="button"
+                class="clear-btn"
+                @click="xoaCongViecDaHoanThanh"
+                :disabled="soCongViecDaHoanThanh === 0"
+            >
+                Xóa các việc đã hoàn thành
+            </button>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    const app = Vue.createApp({
+        data() {
+            return {
+                tenCongViecMoi: '',
+
+                congViecList: [
+                    {
+                        id: 1,
+                        ten: 'Học Vue.js',
+                        hoanThanh: false
+                    },
+                    {
+                        id: 2,
+                        ten: 'Làm bài tập lập trình',
+                        hoanThanh: true
+                    },
+                    {
+                        id: 3,
+                        ten: 'Đọc tài liệu môn học',
+                        hoanThanh: false
+                    }
+                ],
+
+                boLoc: 'tatCa',
+                nextId: 4
+            };
+        },
+
+        computed: {
+            // Danh sách công việc theo bộ lọc
+            congViecHienThi() {
+                if (this.boLoc === 'chuaHoanThanh') {
+                    return this.congViecList.filter(
+                        cv => !cv.hoanThanh
+                    );
+                }
+
+                if (this.boLoc === 'daHoanThanh') {
+                    return this.congViecList.filter(
+                        cv => cv.hoanThanh
+                    );
+                }
+
+                return this.congViecList;
+            },
+
+            // Tổng số công việc
+            tongSoCongViec() {
+                return this.congViecList.length;
+            },
+
+            // Số công việc chưa hoàn thành
+            soCongViecChuaHoanThanh() {
+                return this.congViecList.filter(
+                    cv => !cv.hoanThanh
+                ).length;
+            },
+
+            // Số công việc đã hoàn thành
+            soCongViecDaHoanThanh() {
+                return this.congViecList.filter(
+                    cv => cv.hoanThanh
+                ).length;
+            },
+
+            // Thông báo phù hợp với danh sách hiện tại
+            thongBaoRong() {
+                if (this.congViecList.length === 0) {
+                    return 'Danh sách công việc đang trống!';
+                }
+
+                if (this.boLoc === 'chuaHoanThanh') {
+                    return 'Không có công việc chưa hoàn thành.';
+                }
+
+                if (this.boLoc === 'daHoanThanh') {
+                    return 'Không có công việc đã hoàn thành.';
+                }
+
+                return 'Không có công việc nào.';
+            }
+        },
+
+        methods: {
+            // Thêm công việc mới
+            themCongViec() {
+                const ten = this.tenCongViecMoi.trim();
+
+                // Không cho thêm tên rỗng
+                if (ten === '') {
+                    return;
+                }
+
+                this.congViecList.push({
+                    id: this.nextId++,
+                    ten: ten,
+                    hoanThanh: false
+                });
+
+                // Xóa nội dung ô nhập sau khi thêm
+                this.tenCongViecMoi = '';
+            },
+
+            // Xóa một công việc theo id
+            xoaCongViec(id) {
+                this.congViecList = this.congViecList.filter(
+                    cv => cv.id !== id
+                );
+            },
+
+            // Xóa tất cả công việc đã hoàn thành
+            xoaCongViecDaHoanThanh() {
+                this.congViecList = this.congViecList.filter(
+                    cv => !cv.hoanThanh
+                );
+            }
+        }
+    });
+
+    app.mount('#app');
+</script>
+
+</body>
+</html>

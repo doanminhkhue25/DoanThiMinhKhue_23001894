@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thẻ thông tin sinh viên</title>
+
+    <!-- Vue.js 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            padding: 30px;
+        }
+
+        .student-card {
+            width: 350px;
+            background-color: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            text-align: center;
+        }
+
+        .avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #3498db;
+        }
+
+        .info {
+            text-align: left;
+            line-height: 1.8;
+            margin-top: 20px;
+        }
+
+        .gioi {
+            color: green;
+            font-weight: bold;
+        }
+
+        .kha {
+            color: blue;
+            font-weight: bold;
+        }
+
+        .trung-binh {
+            color: orange;
+            font-weight: bold;
+        }
+
+        .chua-dat {
+            color: red;
+            font-weight: bold;
+        }
+
+        .status {
+            font-weight: bold;
+        }
+
+        button {
+            margin-top: 15px;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 6px;
+            background-color: #3498db;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #217dbb;
+        }
+
+        .introduction {
+            margin-top: 15px;
+            padding: 12px;
+            background-color: #eef7ff;
+            border-radius: 8px;
+            text-align: left;
+        }
+    </style>
+</head>
+
+<body>
+
+<div id="app">
+    <div class="student-card">
+
+        <h2>THẺ THÔNG TIN SINH VIÊN</h2>
+
+        <!-- Ảnh đại diện: sử dụng v-bind -->
+        <img
+            :src="avatar"
+            :alt="'Ảnh đại diện của ' + hoTen"
+            class="avatar"
+        >
+
+        <!-- Họ tên: sử dụng nội suy {{ }} -->
+        <h3>{{ hoTen }}</h3>
+
+        <div class="info">
+            <p>
+                <strong>Mã sinh viên:</strong>
+                {{ maSinhVien }}
+            </p>
+
+            <!-- Tên lớp: sử dụng v-text -->
+            <p>
+                <strong>Lớp:</strong>
+                <span v-text="lop"></span>
+            </p>
+
+            <p>
+                <strong>Điểm trung bình:</strong>
+                {{ diemTrungBinh }}
+            </p>
+
+            <!-- Xếp loại: sử dụng v-if, v-else-if, v-else -->
+            <p>
+                <strong>Xếp loại:</strong>
+
+                <span :class="{
+                    'gioi': diemTrungBinh >= 8,
+                    'kha': diemTrungBinh >= 6.5 && diemTrungBinh < 8,
+                    'trung-binh': diemTrungBinh >= 5 && diemTrungBinh < 6.5,
+                    'chua-dat': diemTrungBinh < 5
+                }">
+                    {{
+                        diemTrungBinh >= 8 ? 'Giỏi' :
+                        diemTrungBinh >= 6.5 ? 'Khá' :
+                        diemTrungBinh >= 5 ? 'Trung bình' : 'Chưa đạt'
+                    }}
+                </span>
+            </p>
+
+            <!-- Hiển thị trạng thái sinh viên -->
+            <p>
+                <strong>Trạng thái:</strong>
+
+                <span v-if="dangHoc" class="gioi">
+                    Đang học
+                </span>
+
+                <span v-else class="chua-dat">
+                    Đã nghỉ
+                </span>
+            </p>
+        </div>
+
+        <!-- Nút bật/tắt phần giới thiệu -->
+        <button @click="hienThiGioiThieu = !hienThiGioiThieu">
+            {{ hienThiGioiThieu ? 'Ẩn giới thiệu' : 'Xem giới thiệu' }}
+        </button>
+
+        <!-- v-show dùng để ẩn hoặc hiện phần giới thiệu -->
+        <div class="introduction" v-show="hienThiGioiThieu">
+            <h4>Giới thiệu</h4>
+            <p>{{ gioiThieu }}</p>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    const app = Vue.createApp({
+        data() {
+            return {
+                maSinhVien: 'SV001',
+                hoTen: 'Nguyễn Văn An',
+                lop: 'K68A4 - Khoa học máy tính và thông tin',
+                avatar: 'https//placehold.co/200x200?text=Student',
+                diemTrungBinh: 6,
+                dangHoc: false,
+
+                hienThiGioiThieu: false,
+
+                gioiThieu: 'Tôi là sinh viên ngành Khoa học máy tính và thông tin. ' +
+                           'Tôi yêu thích lập trình và phát triển phần mềm.'
+            };
+        }
+    });
+
+    app.mount('#app');
+</script>
+
+</body>
+</html>
