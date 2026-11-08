@@ -1,0 +1,172 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bài 2 - Component sản phẩm</title>
+
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+      padding: 30px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #2563eb;
+    }
+
+    .product-list {
+      max-width: 1100px;
+      margin: auto;
+      display: grid;
+      grid-template-columns:
+        repeat(auto-fit, minmax(230px, 1fr));
+      gap: 20px;
+    }
+
+    .product-card {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+      box-shadow: 0 2px 8px #ddd;
+    }
+
+    .product-image {
+      width: 100%;
+      height: 180px;
+      object-fit: contain;
+    }
+
+    .price {
+      color: #dc2626;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .in-stock {
+      color: green;
+      font-weight: bold;
+    }
+
+    .out-stock {
+      color: red;
+      font-weight: bold;
+    }
+
+    button {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 5px;
+    }
+
+    .detail-btn {
+      background: #0ea5e9;
+      color: white;
+    }
+
+    .buy-btn {
+      background: #16a34a;
+      color: white;
+    }
+
+    .buy-btn:disabled {
+      background: #aaa;
+      cursor: not-allowed;
+    }
+
+    .description {
+      background: #eff6ff;
+      padding: 10px;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div id="app">
+
+  <h1>Danh mục sản phẩm</h1>
+
+  <div class="product-list">
+
+    <the-san-pham
+      v-for="sp in sanPham"
+      :key="sp.id"
+      :ten="sp.ten"
+      :gia="sp.gia"
+      :anh="sp.anh"
+      :mo-ta="sp.moTa"
+      :ton-kho="sp.tonKho"
+    >
+    </the-san-pham>
+
+  </div>
+
+</div>
+
+<!-- Nạp component trước khi tạo ứng dụng -->
+<script src="components/TheSanPham.js"></script>
+
+<script>
+const { createApp } = Vue;
+
+const app = createApp({
+  data() {
+    return {
+      sanPham: [
+        {
+          id: 1,
+          ten: "Laptop Dell",
+          gia: 15000000,
+          anh: "https://placehold.co/300x200?text=Laptop+Dell",
+          moTa: "Laptop Dell dành cho học tập và làm việc.",
+          tonKho: 5
+        },
+        {
+          id: 2,
+          ten: "Điện thoại Samsung",
+          gia: 9000000,
+          anh: "https://placehold.co/300x200?text=Samsung",
+          moTa: "Điện thoại Samsung màn hình AMOLED.",
+          tonKho: 0
+        },
+        {
+          id: 3,
+          ten: "Tai nghe Bluetooth",
+          gia: 500000,
+          anh: "https://placehold.co/300x200?text=Tai+Nghe",
+          moTa: "Tai nghe không dây, âm thanh chất lượng.",
+          tonKho: 15
+        },
+        {
+          id: 4,
+          ten: "Bàn phím cơ",
+          gia: 1200000,
+          anh: "https://placehold.co/300x200?text=Ban+Phim",
+          moTa: "Bàn phím cơ có đèn LED RGB.",
+          tonKho: 8
+        }
+      ]
+    };
+  }
+});
+
+// Đăng ký component trước khi mount
+app.component("the-san-pham", TheSanPham);
+
+app.mount("#app");
+</script>
+
+</body>
+</html>

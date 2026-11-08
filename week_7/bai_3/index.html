@@ -1,0 +1,317 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bài 3 - Giỏ hàng</title>
+
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+      padding: 30px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+      background: white;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px #ddd;
+    }
+
+    h1 { color: #2563eb; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 12px;
+      border: 1px solid #ddd;
+      text-align: center;
+    }
+
+    th {
+      background: #2563eb;
+      color: white;
+    }
+
+    button {
+      padding: 7px 12px;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+      margin: 3px;
+    }
+
+    .increase {
+      background: #16a34a;
+      color: white;
+    }
+
+    .decrease {
+      background: #f59e0b;
+      color: white;
+    }
+
+    .delete {
+      background: #dc2626;
+      color: white;
+    }
+
+    button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .summary {
+      margin-top: 20px;
+      background: #eff6ff;
+      padding: 15px;
+      border-radius: 6px;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 30px;
+      color: #666;
+    }
+  </style>
+</head>
+
+<body>
+
+<div id="app" class="container">
+
+  <h1>Giỏ hàng</h1>
+
+  <table v-if="gioHang.length > 0">
+    <thead>
+      <tr>
+        <th>Sản phẩm</th>
+        <th>Đơn giá</th>
+        <th>Số lượng</th>
+        <th>Thành tiền</th>
+        <th>Thao tác</th>
+      </tr>
+    </thead>
+
+    <tbody>
+
+      <dong-gio-hang
+        v-for="sp in gioHang"
+        :key="sp.id"
+        :san-pham="sp"
+        @doi-so-luong="capNhatSoLuong"
+        @yeu-cau-xoa="xoaSanPham"
+      >
+      </dong-gio-hang>
+
+    </tbody>
+  </table>
+
+  <p v-else class="empty">
+    Giỏ hàng trống
+  </p>
+
+  <div class="summary">
+    <h2>Thông tin giỏ hàng</h2>
+
+    <p>
+      Tổng số lượng:
+      <strong>{{ tongSoLuong }}</strong>
+    </p>
+
+    <p>
+      Tổng tiền:
+      <strong>{{ dinhDangTien(tongTien) }}</strong>
+    </p>
+  </div>
+
+</div>
+
+<script>
+const { createApp } = Vue;
+
+// COMPONENT CON
+const DongGioHang = {
+  props: {
+    sanPham: {
+      type: Object,
+      required: true
+    }
+  },
+
+  emits: [
+    "doi-so-luong",
+    "yeu-cau-xoa"
+  ],
+
+  methods: {
+    dinhDangTien(gia) {
+      return gia.toLocaleString("vi-VN") + " đ";
+    },
+
+    tangSoLuong() {
+      if (this.sanPham.soLuong < 99) {
+        this.$emit(
+          "doi-so-luong",
+          this.sanPham.id,
+          this.sanPham.soLuong + 1
+        );
+      }
+    },
+
+    giamSoLuong() {
+      if (this.sanPham.soLuong > 1) {
+        this.$emit(
+          "doi-so-luong",
+          this.sanPham.id,
+          this.sanPham.soLuong - 1
+        );
+      }
+    },
+
+    yeuCauXoa() {
+      this.$emit(
+        "yeu-cau-xoa",
+        this.sanPham.id
+      );
+    }
+  },
+
+  template: `
+    <tr>
+      <td>{{ sanPham.ten }}</td>
+
+      <td>
+        {{ dinhDangTien(sanPham.donGia) }}
+      </td>
+
+      <td>
+        <button
+          class="decrease"
+          @click="giamSoLuong"
+          :disabled="sanPham.soLuong <= 1"
+        >
+          -
+        </button>
+
+        {{ sanPham.soLuong }}
+
+        <button
+          class="increase"
+          @click="tangSoLuong"
+          :disabled="sanPham.soLuong >= 99"
+        >
+          +
+        </button>
+      </td>
+
+      <td>
+        {{ dinhDangTien(
+          sanPham.donGia * sanPham.soLuong
+        ) }}
+      </td>
+
+      <td>
+        <button
+          class="delete"
+          @click="yeuCauXoa"
+        >
+          Xóa
+        </button>
+      </td>
+    </tr>
+  `
+};
+
+// COMPONENT CHA
+const app = createApp({
+  data() {
+    return {
+      gioHang: [
+        {
+          id: 1,
+          ten: "Bút",
+          donGia: 5000,
+          soLuong: 2
+        },
+        {
+          id: 2,
+          ten: "Vở",
+          donGia: 12000,
+          soLuong: 3
+        }
+      ]
+    };
+  },
+
+  computed: {
+    tongSoLuong() {
+      return this.gioHang.reduce(
+        (tong, sp) => tong + sp.soLuong,
+        0
+      );
+    },
+
+    tongTien() {
+      return this.gioHang.reduce(
+        (tong, sp) =>
+          tong + sp.donGia * sp.soLuong,
+        0
+      );
+    }
+  },
+
+  methods: {
+    dinhDangTien(gia) {
+      return gia.toLocaleString("vi-VN") + " đ";
+    },
+
+    capNhatSoLuong(id, soLuongMoi) {
+      // Chỉ cho phép số nguyên 1 đến 99
+      if (
+        !Number.isInteger(soLuongMoi) ||
+        soLuongMoi < 1 ||
+        soLuongMoi > 99
+      ) {
+        alert("Số lượng phải từ 1 đến 99");
+        return;
+      }
+
+      const sanPham = this.gioHang.find(
+        sp => sp.id === id
+      );
+
+      if (sanPham) {
+        sanPham.soLuong = soLuongMoi;
+      }
+    },
+
+    xoaSanPham(id) {
+      if (confirm("Bạn có chắc muốn xóa sản phẩm?")) {
+        this.gioHang = this.gioHang.filter(
+          sp => sp.id !== id
+        );
+      }
+    }
+  }
+});
+
+// Đăng ký component con
+app.component("dong-gio-hang", DongGioHang);
+
+app.mount("#app");
+</script>
+
+</body>
+</html>

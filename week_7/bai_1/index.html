@@ -1,0 +1,437 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bài 1 - Quản lý sản phẩm</title>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+      padding: 30px;
+      color: #333;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: auto;
+      background: white;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px #ddd;
+    }
+
+    h1, h2 { color: #2563eb; }
+
+    .filters, .form {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin: 20px 0;
+    }
+
+    input, select, button {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover { background: #1d4ed8; }
+
+    .delete-btn { background: #dc2626; }
+    .delete-btn:hover { background: #b91c1c; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 12px;
+      border: 1px solid #ddd;
+      text-align: center;
+    }
+
+    th { background: #2563eb; color: white; }
+    tr:nth-child(even) { background: #f9fafb; }
+
+    .available { color: green; font-weight: bold; }
+    .unavailable { color: red; font-weight: bold; }
+
+    .stats {
+      margin-top: 20px;
+      background: #eff6ff;
+      padding: 15px;
+      border-radius: 6px;
+    }
+
+    .warning { color: #d97706; }
+    .error { color: #dc2626; }
+  </style>
+</head>
+
+<body>
+<div id="app" class="container">
+
+  <h1>Quản lý sản phẩm</h1>
+  <p>Trạng thái: {{ trangThai }}</p>
+
+  <!-- TÌM KIẾM, LỌC, SẮP XẾP -->
+  <div class="filters">
+
+    <input
+      v-model="tuKhoa"
+      placeholder="Tìm kiếm theo tên..."
+    >
+
+    <select v-model="danhMucChon">
+      <option value="">Tất cả danh mục</option>
+      <option
+        v-for="dm in danhMuc"
+        :key="dm"
+        :value="dm"
+      >
+        {{ dm }}
+      </option>
+    </select>
+
+    <select v-model="sapXep">
+      <option value="">Mặc định</option>
+      <option value="tang">Giá tăng dần</option>
+      <option value="giam">Giá giảm dần</option>
+    </select>
+
+  </div>
+
+  <p v-if="thongBao" class="warning">
+    {{ thongBao }}
+  </p>
+
+  <!-- BẢNG SẢN PHẨM -->
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Tên sản phẩm</th>
+        <th>Giá</th>
+        <th>Danh mục</th>
+        <th>Tồn kho</th>
+        <th>Trạng thái</th>
+        <th>Thao tác</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr
+        v-for="sp in sanPhamHienThi"
+        :key="sp.id"
+      >
+        <td>{{ sp.id }}</td>
+        <td>{{ sp.ten }}</td>
+        <td>{{ dinhDangTien(sp.gia) }}</td>
+        <td>{{ sp.danhMuc }}</td>
+        <td>{{ sp.tonKho }}</td>
+
+        <td>
+          <span
+            :class="sp.tonKho > 0
+              ? 'available'
+              : 'unavailable'"
+          >
+            {{ sp.tonKho > 0 ? 'Còn hàng' : 'Hết hàng' }}
+          </span>
+        </td>
+
+        <td>
+          <button
+            class="delete-btn"
+            @click="xoaSanPham(sp.id)"
+          >
+            Xóa
+          </button>
+        </td>
+      </tr>
+
+      <tr v-if="sanPhamHienThi.length === 0">
+        <td colspan="7">
+          Không có sản phẩm phù hợp
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- THỐNG KÊ -->
+  <div class="stats">
+    <h2>Thống kê</h2>
+
+    <p>
+      Số sản phẩm hiển thị:
+      <strong>
+        {{ sanPhamHienThi.length }}/{{ sanPham.length }}
+      </strong>
+    </p>
+
+    <p>
+      Tổng giá trị tồn kho:
+      <strong>{{ dinhDangTien(tongGiaTriTonKho) }}</strong>
+    </p>
+  </div>
+
+  <!-- FORM THÊM SẢN PHẨM -->
+  <h2>Thêm sản phẩm</h2>
+
+  <form class="form" @submit.prevent="themSanPham">
+
+    <input
+      v-model="sanPhamMoi.ten"
+      placeholder="Tên sản phẩm"
+    >
+
+    <input
+      v-model.number="sanPhamMoi.gia"
+      type="number"
+      placeholder="Giá"
+    >
+
+    <select v-model="sanPhamMoi.danhMuc">
+      <option value="">Chọn danh mục</option>
+      <option
+        v-for="dm in danhMuc"
+        :key="dm"
+        :value="dm"
+      >
+        {{ dm }}
+      </option>
+    </select>
+
+    <input
+      v-model.number="sanPhamMoi.tonKho"
+      type="number"
+      placeholder="Số lượng tồn"
+    >
+
+    <button type="submit">Thêm sản phẩm</button>
+  </form>
+
+  <p v-if="loi" class="error">{{ loi }}</p>
+
+</div>
+
+<script>
+const { createApp } = Vue;
+
+createApp({
+  data() {
+    return {
+      trangThai: "Đang tải...",
+
+      tuKhoa: "",
+      danhMucChon: "",
+      sapXep: "",
+
+      thongBao: "",
+      loi: "",
+
+      danhMuc: [
+        "Điện tử",
+        "Thời trang",
+        "Gia dụng"
+      ],
+
+      sanPham: [
+        {
+          id: 1,
+          ten: "Laptop Dell",
+          gia: 15000000,
+          danhMuc: "Điện tử",
+          tonKho: 5
+        },
+        {
+          id: 2,
+          ten: "Điện thoại Samsung",
+          gia: 9000000,
+          danhMuc: "Điện tử",
+          tonKho: 0
+        },
+        {
+          id: 3,
+          ten: "Áo thun",
+          gia: 150000,
+          danhMuc: "Thời trang",
+          tonKho: 20
+        },
+        {
+          id: 4,
+          ten: "Quần jeans",
+          gia: 400000,
+          danhMuc: "Thời trang",
+          tonKho: 10
+        },
+        {
+          id: 5,
+          ten: "Nồi cơm điện",
+          gia: 1200000,
+          danhMuc: "Gia dụng",
+          tonKho: 8
+        },
+        {
+          id: 6,
+          ten: "Máy xay sinh tố",
+          gia: 800000,
+          danhMuc: "Gia dụng",
+          tonKho: 0
+        }
+      ],
+
+      sanPhamMoi: {
+        ten: "",
+        gia: "",
+        danhMuc: "",
+        tonKho: ""
+      }
+    };
+  },
+
+  computed: {
+    // Tìm kiếm + lọc + sắp xếp đồng thời
+    sanPhamHienThi() {
+      let ketQua = [...this.sanPham];
+
+      // Tìm kiếm không phân biệt hoa/thường
+      const keyword = this.tuKhoa.trim().toLowerCase();
+
+      if (keyword) {
+        ketQua = ketQua.filter(sp =>
+          sp.ten.toLowerCase().includes(keyword)
+        );
+      }
+
+      // Lọc danh mục
+      if (this.danhMucChon) {
+        ketQua = ketQua.filter(sp =>
+          sp.danhMuc === this.danhMucChon
+        );
+      }
+
+      // Sắp xếp bản sao, không sửa mảng gốc
+      if (this.sapXep === "tang") {
+        ketQua.sort((a, b) => a.gia - b.gia);
+      } else if (this.sapXep === "giam") {
+        ketQua.sort((a, b) => b.gia - a.gia);
+      }
+
+      return ketQua;
+    },
+
+    // Tổng giá trị tồn kho theo bộ lọc hiện tại
+    tongGiaTriTonKho() {
+      return this.sanPhamHienThi.reduce(
+        (tong, sp) => tong + sp.gia * sp.tonKho,
+        0
+      );
+    }
+  },
+
+  watch: {
+    tuKhoa(giaTriMoi) {
+      const text = giaTriMoi.trim();
+
+      if (text.length === 1) {
+        this.thongBao = "Vui lòng nhập ít nhất 2 ký tự";
+      } else {
+        this.thongBao = "";
+      }
+    }
+  },
+
+  methods: {
+    dinhDangTien(gia) {
+      return gia.toLocaleString("vi-VN") + " đ";
+    },
+
+    themSanPham() {
+      const sp = this.sanPhamMoi;
+
+      // Kiểm tra tên
+      if (!sp.ten.trim()) {
+        this.loi = "Tên sản phẩm không được để trống";
+        return;
+      }
+
+      // Kiểm tra giá
+      if (
+        typeof sp.gia !== "number" ||
+        !Number.isFinite(sp.gia) ||
+        sp.gia <= 0
+      ) {
+        this.loi = "Giá phải là số lớn hơn 0";
+        return;
+      }
+
+      // Kiểm tra tồn kho
+      if (
+        !Number.isInteger(sp.tonKho) ||
+        sp.tonKho < 0
+      ) {
+        this.loi = "Tồn kho phải là số nguyên không âm";
+        return;
+      }
+
+      if (!this.danhMuc.includes(sp.danhMuc)) {
+        this.loi = "Vui lòng chọn danh mục";
+        return;
+      }
+
+      const idMoi = this.sanPham.length > 0
+        ? Math.max(...this.sanPham.map(sp => sp.id)) + 1
+        : 1;
+
+      this.sanPham.push({
+        id: idMoi,
+        ten: sp.ten.trim(),
+        gia: sp.gia,
+        danhMuc: sp.danhMuc,
+        tonKho: sp.tonKho
+      });
+
+      this.loi = "";
+
+      this.sanPhamMoi = {
+        ten: "",
+        gia: "",
+        danhMuc: "",
+        tonKho: ""
+      };
+
+      alert("Thêm sản phẩm thành công!");
+    },
+
+    xoaSanPham(id) {
+      if (confirm("Bạn có chắc muốn xóa sản phẩm này?")) {
+        this.sanPham = this.sanPham.filter(
+          sp => sp.id !== id
+        );
+      }
+    }
+  },
+
+  mounted() {
+    this.trangThai = "Sẵn sàng";
+  }
+}).mount("#app");
+</script>
+
+</body>
+</html>
